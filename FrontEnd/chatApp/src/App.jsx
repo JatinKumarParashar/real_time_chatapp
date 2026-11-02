@@ -10,7 +10,9 @@ function App() {
   const [socket, setSocket] = useState(null)
 
   useEffect(() => {
-    const chatSocket = io('http://localhost:4000')
+    const chatSocket = io(import.meta.env.VITE_SOCKET_URL, {
+      transports: ['websocket'],
+    })
     const handleConnect = () => setSocket(chatSocket)
 
     chatSocket.on('connect', handleConnect)

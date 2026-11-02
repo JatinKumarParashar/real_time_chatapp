@@ -10,7 +10,9 @@ function SignUpForm({ onSwitchToLogin }) {
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
-    const socket = io('http://localhost:4000')
+    const socket = io(import.meta.env.VITE_SOCKET_URL, {
+      transports: ['websocket'],
+    })
     socketRef.current = socket
 
     socket.on('signupSuccess', () => {
