@@ -1,0 +1,68 @@
+const express = require("express");
+const path = require("path");
+const app = express();
+const { Server } = require("socket.io");
+
+// Dotenv
+const dotenv = require("dotenv");
+dotenv.config();
+
+// Database
+const sequelize = require("./util/database");
+
+// Express Server
+const http = require("http").createServer(app);
+
+app.use(express.static(path.join(__dirname, "..", "FrontEnd")));
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "FrontEnd", "index.html"));
+});
+
+// Websocket Server Initialization
+const io = new Server(http, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
+
+const {
+  userConnection,
+  receiveMessage,
+  userDisconnect,
+  newUserSignup,
+} = require("./sockets");
+
+// Models
+const User = require("./models/user");
+const Message = require("./models/message");
+
+// Current Connected Users
+const users = {};
+
+// Socket IO Code for Connection and Message Sending System
+io.on("connection", async (socket) => {
+  newUserSignup(io, socket, users);
+  userConnection(io, socket, users);
+  receiveMessage(io, socket, users);
+  userDisconnect(io, socket, users);
+});
+
+// Database sync and server listen port
+sequelize
+  .sync()
+  .then(() => {
+    // Models Relationship
+    User.hasMany(Message, {
+      onDelete: "CASCADE",
+    });
+    Message.belongsTo(User);
+
+    http.listen(process.env.PORT || 4000, () => {
+      console.log("listening on *:4000");
+    });
+  })
+  .catch((error) => {
+    console.error("Unable to connect to the database:", error.message);
+    process.exitCode = 1;
+  });
