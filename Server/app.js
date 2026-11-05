@@ -17,6 +17,9 @@ app.use(express.static(path.join(__dirname, "..", "FrontEnd")));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "FrontEnd", "index.html"));
 });
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
 
 // Websocket Server Initialization
 const io = new Server(http, {
