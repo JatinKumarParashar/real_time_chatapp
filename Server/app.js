@@ -17,8 +17,14 @@ app.use(express.static(path.join(__dirname, "..", "FrontEnd")));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "FrontEnd", "index.html"));
 });
-app.get("/health", (req, res) => {
-  res.status(200).send("OK");
+app.get("/health", async (req, res) => {
+  try {
+    await sequelize.authenticate();
+    res.status(200).send("OK");
+  } catch (error) {
+    console.error("Health check database connection failed:", error.message);
+    res.status(503).send("Database unavailable");
+  }
 });
 
 // Websocket Server Initialization
